@@ -1,19 +1,32 @@
 #
 { log_type =~ ".+" } | json 
 
-#All logs for host "master1" 
-{ kubernetes_host ="master1" } | json
+#All infrastructure logs
+{ log_type="infrastructure" } | json
+
+#All infrastructure logs for host matching regex pattern
+{ log_type="infrastructure" , kubernetes_host=~"ip-10-.*" } | json
 
 #All logs for host "master1" matching the listed log levels
-{ kubernetes_host ="master1" } | json | level=~"info|inf|information|notice 
+{ log_type="infrastructure" , kubernetes_host=~"ip-10-.*" } | json | level=~"info|inf|information|notice 
 
 #All logs, All host matching the log level listed
 { kubernetes_host =~ ".+" } | json | level=~"error" 
 
 #All logs for a specific namespace
-{ kubernetes_namespace_name="openshift-monitoring" }'
+{ kubernetes_namespace_name="openshift-monitoring" }
+
+#All logs for pod in namespace, NOT containing string, but EQUAL to string 
+{ kubernetes_namespace_name="openshift-monitoring", kubernetes_pod_name="prometheus-k8s-0"} | json != "TLS handshake error from 10.129" |= "write tcp 10.130"
 
 #Sum the number of log lines for all kubernetes_host for a 5 minute period
-sum(count_over_time({ kubernetes_host =~ ".+" }[5m]))' 
+sum(count_over_time({ kubernetes_host =~ ".+" }[5m])) 
 
-#
+#Sum the number of logs for a namespace
+sum(count_over_time({ kubernetes_namespace_name="openshift-monitoring" }[5m]))
+
+#All logs for namespace loglevel error containing the string "no such host"
+{ kubernetes_namespace_name="openshift-monitoring" }  | json | level=~"error" |= "no such host"
+
+#metrics from logs
+sum(count_over_time({ kubernetes_namespace_name="openshift-monitoring" }  | json | level=~"error" |= "no such host" [5m]))
