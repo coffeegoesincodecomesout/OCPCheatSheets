@@ -1,0 +1,19 @@
+#
+{ log_type =~ ".+" } | json 
+
+#All logs for host "master1" 
+{ kubernetes_host ="master1" } | json
+
+#All logs for host "master1" matching the listed log levels
+{ kubernetes_host ="master1" } | json | level=~"info|inf|information|notice 
+
+#All logs, All host matching the log level listed
+{ kubernetes_host =~ ".+" } | json | level=~"error" 
+
+#All logs for a specific namespace
+{ kubernetes_namespace_name="openshift-monitoring" }'
+
+#Sum the number of log lines for all kubernetes_host for a 5 minute period
+sum(count_over_time({ kubernetes_host =~ ".+" }[5m]))' 
+
+#
