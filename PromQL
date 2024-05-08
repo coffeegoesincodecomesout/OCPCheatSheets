@@ -1,3 +1,15 @@
+# kube node role equal
+kube_node_role {role="master"}  
+
+# NOT EQUAL
+kube_node_role {role!="master"} 
+
+# node load 15 by role master
+(avg by (instance) (rate(node_load5[5m]) > 0)) and on (instance) label_replace(kube_node_role{role="master"}, "instance", "$1", "node", "(.+)")
+
+# node load 15 by role master - minus named instance
+(avg by (instance) (rate(node_load5[5m]) > 0)) and on (instance) label_replace(kube_node_role{role="master", node!="ip-10-0-32-23.us-east-2.compute.internal"}, "instance", "$1", "node", "(.+)")
+
 # equal
 node_load15{instance="master-0.test.lab.redhat.com"}
 
